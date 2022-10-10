@@ -67,44 +67,52 @@ int main( int argc, char* argv[] )
 
   // Initialize y vector.
   // EXERCISE: Convert outer loop to Kokkos::parallel_for.
-  for ( int i = 0; i < N; ++i ) {
+  //for ( int i = 0; i < N; ++i ) {
+  Kokkos::parallel_for( "y_init", N, KOKKOS_LAMBDA ( int i ) {
     y[ i ] = 1;
-  }
+  //}
+  });
 
   // Initialize x vector.
   // EXERCISE: Convert outer loop to Kokkos::parallel_for.
-  for ( int i = 0; i < M; ++i ) {
+  //for ( int i = 0; i < M; ++i ) {
+  Kokkos::parallel_for( "x_init", M, KOKKOS_LAMBDA ( int i ) {
     x[ i ] = 1;
-  }
+  //}
+  });
 
   // Initialize A matrix, note 2D indexing computation.
   // EXERCISE: Convert outer loop to Kokkos::parallel_for.
-  for ( int j = 0; j < N; ++j ) {
+  //for ( int j = 0; j < N; ++j ) {
+  Kokkos::parallel_for( "matrix_init", N, KOKKOS_LAMBDA ( int j ) {
     for ( int i = 0; i < M; ++i ) {
       A[ j * M + i ] = 1;
     }
-  }
+  //}
+  });
 
   // Timer products.
-  //Kokkos::Timer timer;
-  struct timeval begin, end;
+  Kokkos::Timer timer;
+  //struct timeval begin, end;
 
-  gettimeofday( &begin, NULL );
+  //gettimeofday( &begin, NULL );
 
   for ( int repeat = 0; repeat < nrepeat; repeat++ ) {
     // Application: <y,Ax> = y^T*A*x
     double result = 0;
 
     // EXERCISE: Convert outer loop to Kokkos::parallel_reduce.
-    for ( int j = 0; j < N; ++j ) {
+    //for ( int j = 0; j < N; ++j ) {
+    Kokkos::parallel_reduce( "yAx", N, KOKKOS_LAMBDA ( int j, double &update ) {
       double temp2 = 0;
 
       for ( int i = 0; i < M; ++i ) {
         temp2 += A[ j * M + i ] * x[ i ];
       }
 
-      result += y[ j ] * temp2;
-    }
+      update += y[ j ] * temp2;
+    //}
+    }, result );
 
     // Output result.
     if ( repeat == ( nrepeat - 1 ) ) {
@@ -118,12 +126,13 @@ int main( int argc, char* argv[] )
     }
   }
 
-  gettimeofday( &end, NULL );
+  //gettimeofday( &end, NULL );
+  
 
   // Calculate time.
-  //double time = timer.seconds();
-  double time = 1.0 * ( end.tv_sec - begin.tv_sec ) +
-                1.0e-6 * ( end.tv_usec - begin.tv_usec );
+  double time = timer.seconds();
+  //double time = 1.0 * ( end.tv_sec - begin.tv_sec ) +
+  //              1.0e-6 * ( end.tv_usec - begin.tv_usec );
 
   // Calculate bandwidth.
   // Each matrix A row (each of length M) is read once.
