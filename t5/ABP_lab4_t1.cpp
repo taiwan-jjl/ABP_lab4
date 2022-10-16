@@ -31,6 +31,8 @@ n_element = test;
     using ExecSpace = MemSpace::execution_space;
     using range_policy = Kokkos::RangePolicy<ExecSpace>;
 
+    using range_policy2 = Kokkos::RangePolicy<Kokkos::HostSpace::execution_space>;
+
     Kokkos::View<fptype*[3][3], Kokkos::memlayout, MemSpace> J( "J", n_element);
     Kokkos::View<fptype*[4][4], Kokkos::memlayout, MemSpace> A( "A", n_element);
 
@@ -38,7 +40,7 @@ n_element = test;
     Kokkos::View<fptype*[4][4], Kokkos::memlayout, MemSpace>::HostMirror h_A = Kokkos::create_mirror_view( A );
 
     Kokkos::Timer timer;
-    for ( int i =0; i<n_element; i++){
+    Kokkos::parallel_for( "init", range_policy2( 0, n_element ), KOKKOS_LAMBDA ( int i ) {
         h_J(i,0,0) = 3;
         h_J(i,0,1) = 1;
         h_J(i,0,2) = 1;
@@ -48,7 +50,7 @@ n_element = test;
         h_J(i,2,0) = 1;
         h_J(i,2,1) = 1;
         h_J(i,2,2) = 3;
-    }
+    });
     double t_j_init = timer.seconds();
 
     timer.reset();

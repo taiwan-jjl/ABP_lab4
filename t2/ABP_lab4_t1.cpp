@@ -11,8 +11,8 @@ int main( int argc, char* argv[] )
 {
     int n_element = 10000000;
     int nrepeat = 10;
-    #define fptype float
-    #define memlayout LayoutLeft
+    #define fptype double
+    #define memlayout LayoutRight
 
 
 Kokkos::initialize( argc, argv );
